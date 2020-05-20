@@ -11,6 +11,7 @@ import (
 )
 
 // GetS3Data for getting s3 data for given bucket and key
+// Supported Compression is gzip
 func GetS3Data(bucket, key string, compressed bool) (io.Reader, error) {
 	out, err := s3svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
