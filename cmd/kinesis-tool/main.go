@@ -13,6 +13,7 @@ var (
 	compressed   bool
 	stream       string
 	partitionKey string
+	debug        bool
 )
 
 const (
@@ -20,6 +21,9 @@ const (
 )
 
 func init() {
+	// Generic Flags
+	flag.BoolVar(&debug, "debug", false, "Enable debug logs")
+
 	// S3 Flags
 	flag.StringVar(&bucket, "bucket", "", "Bucket Name")
 	flag.StringVar(&key, "key", "", "Key Name")
@@ -48,7 +52,10 @@ func main() {
 	for scanner.Scan() {
 		// fmt.Printf("Scanning... %d\n", len(currentBatch))
 		ibts := scanner.Bytes()
-		if currentBufferSize = currentBufferSize + len(ibts); currentBufferSize > batchLimit {
+		if currentBufferSize = currentBufferSize + len(ibts); currentBufferSize > batchLimit || len(currentBatch) == 500 {
+			if debug {
+				log.Printf("Pushing Records: %d\n", len(currentBatch))
+			}
 			err := aws.PutKinesisRecords(currentBatch, stream, partitionKey)
 			if err != nil {
 				log.Println("Error occurred while doing PutKinesisRecords: ", err)
@@ -62,12 +69,15 @@ func main() {
 		currentBatch = append(currentBatch, ibts)
 	}
 
+	if debug {
+		log.Printf("Pushing Records: %d\n", len(currentBatch))
+	}
 	err = aws.PutKinesisRecords(currentBatch, stream, partitionKey)
 	if err != nil {
 		log.Println("Error occurred while doing PutKinesisRecords: ", err)
 	}
 
-	if scanner.Err() != nil {
+	if err := scanner.Err(); err != nil {
 		log.Println("Error occurred while scanning: ", err)
 	}
 }
