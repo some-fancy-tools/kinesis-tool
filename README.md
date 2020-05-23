@@ -14,38 +14,45 @@ Usage can be found by option `-h`.
 ```
 > kinesis-tool -h
 Usage of kinesis-tool:
-  -bucket string
-        Bucket Name
   -compressed
-        Should be true if Key is compressed
+        Should be true if file is compressed
   -debug
         Enable debug logs
-  -key string
-        Key Name
-  -partitionKey string
+  -file string
+        Local File Path
+  -kinesis-key string
         Kinesis Partition Key
+  -kinesis-stream string
+        Kinesis Stream Name
   -profile string
         Profile to be used for AWS (default "default")
   -region string
         Region to be used for AWS (default "us-east-1")
-  -stream string
-        Kinesis Stream Name
+  -s3-bucket string
+        S3 Bucket Name
+  -s3-key string
+        S3 Key Name
 ```
 
 ## Common Options
 
-* debug
-* profile
-* region
+* `debug`: Enables the debug logs.
+* `profile`: AWS Profile to use.
+* `region`: AWS Region to use.
+* `compressed`: It can accept GZIP compressed files as well, it decompresses and then puts the records.
+
+## File Option
+
+> In case we want to send something from local we can use this
+
+* `file`: Path to file which can be read line by line and then send to Kinesis.
 
 ## S3 Options
 
-* bucket
-* key
-* `compressed`: It can accept GZIP compressed files as well, it decompresses and then puts the records.
+* `s3-bucket`: As we can understand from the name it is the bucket name from where we want to use the file.
+* `s3-key`: The object or key path with prefix.
 
 ## Kinesis Options
 
-* stream
-* partitionKey
-
+* `kinesis-stream`: Kinesis stream to put the records to.
+* `kinesis-key`: Partition key by which we send the records.

@@ -17,17 +17,25 @@ var (
 )
 
 func init() {
+	// AWS Related
 	flag.StringVar(&region, "region", "us-east-1", "Region to be used for AWS")
 	flag.StringVar(&profile, "profile", "default", "Profile to be used for AWS")
 
+}
+
+func InitSvc() {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Profile: profile,
 	}))
 
-	kinesissvc = kinesis.New(sess, &aws.Config{
-		Region: aws.String(region),
-	})
-	s3svc = s3.New(sess, &aws.Config{
-		Region: aws.String(region),
-	})
+	if kinesissvc == nil {
+		kinesissvc = kinesis.New(sess, &aws.Config{
+			Region: aws.String(region),
+		})
+	}
+	if s3svc == nil {
+		s3svc = s3.New(sess, &aws.Config{
+			Region: aws.String(region),
+		})
+	}
 }

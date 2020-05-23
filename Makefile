@@ -21,7 +21,7 @@ test:
 
 
 $(PLATFORMS):
-	GOOS=$(os) GOARCH=amd64 go build -ldflags '-X main.version=$(VERSION)' -o release/$(BINARY) cmd/$(BINARY)/main.go
+	GOOS=$(os) GOARCH=amd64 go build -ldflags '-X main.version=$(VERSION) -s -w' -o release/$(BINARY) cmd/$(BINARY)/main.go
 	tar -czf release/$(BINARY)-$(VERSION)-$(os)-amd64.tar.gz README.md -C release/ $(BINARY)
 	rm release/$(BINARY)
 

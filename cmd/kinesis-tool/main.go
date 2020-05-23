@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"log"
 
-	"git.dcpri.me/some-fancy-tools/kinesis-tool/aws"
+	"git.dcpri.me/some-fancy-tools/kinesis-tool/tool"
 )
 
 var (
@@ -14,6 +13,7 @@ var (
 	stream       string
 	partitionKey string
 	debug        bool
+	filepath     string
 )
 
 const (
@@ -23,61 +23,51 @@ const (
 func init() {
 	// Generic Flags
 	flag.BoolVar(&debug, "debug", false, "Enable debug logs")
+	flag.BoolVar(&compressed, "compressed", false, "Should be true if file is compressed")
 
 	// S3 Flags
-	flag.StringVar(&bucket, "bucket", "", "Bucket Name")
-	flag.StringVar(&key, "key", "", "Key Name")
-	flag.BoolVar(&compressed, "compressed", false, "Should be true if Key is compressed")
+	flag.StringVar(&bucket, "s3-bucket", "", "S3 Bucket Name")
+	flag.StringVar(&key, "s3-key", "", "S3 Key Name")
+
+	// File Flags
+	flag.StringVar(&filepath, "file", "", "Local File Path")
 
 	// Kinesis Flags
-	flag.StringVar(&stream, "stream", "", "Kinesis Stream Name")
-	flag.StringVar(&partitionKey, "partitionKey", "", "Kinesis Partition Key")
+	flag.StringVar(&stream, "kinesis-stream", "", "Kinesis Stream Name")
+	flag.StringVar(&partitionKey, "kinesis-key", "", "Kinesis Partition Key")
 
 	flag.Parse()
 }
 
 func main() {
 
-	reader, err := aws.GetS3Data(bucket, key, compressed)
+	s3 := tool.S3{
+		Bucket: bucket,
+		Key:    key,
+	}
+
+	kinesis := tool.Kinesis{
+		PartitionKey: partitionKey,
+		Stream:       stream,
+	}
+
+	f := tool.File{
+		Path: filepath,
+	}
+	t := tool.Tool{
+		Compressed: compressed,
+		Debug:      debug,
+		File:       f,
+		S3:         s3,
+		Kinesis:    kinesis,
+	}
+
+	err := t.Validate()
+	if err != nil {
+		log.Fatal("Error while validating configuration: ", err)
+	}
+	err = t.Run()
 	if err != nil {
 		log.Println(err)
-	}
-
-	scanner := bufio.NewScanner(reader)
-
-	// Initialize
-	currentBufferSize := 0
-	currentBatch := [][]byte{}
-
-	for scanner.Scan() {
-		// fmt.Printf("Scanning... %d\n", len(currentBatch))
-		ibts := scanner.Bytes()
-		if currentBufferSize = currentBufferSize + len(ibts); currentBufferSize > batchLimit || len(currentBatch) == 500 {
-			if debug {
-				log.Printf("Pushing Records: %d\n", len(currentBatch))
-			}
-			err := aws.PutKinesisRecords(currentBatch, stream, partitionKey)
-			if err != nil {
-				log.Println("Error occurred while doing PutKinesisRecords: ", err)
-				break
-			}
-			// Cleanup for next batch
-			currentBatch = [][]byte{}
-			currentBufferSize = len(ibts)
-		}
-
-		currentBatch = append(currentBatch, ibts)
-	}
-
-	if debug {
-		log.Printf("Pushing Records: %d\n", len(currentBatch))
-	}
-	err = aws.PutKinesisRecords(currentBatch, stream, partitionKey)
-	if err != nil {
-		log.Println("Error occurred while doing PutKinesisRecords: ", err)
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Println("Error occurred while scanning: ", err)
 	}
 }

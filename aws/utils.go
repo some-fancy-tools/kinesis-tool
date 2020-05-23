@@ -13,6 +13,7 @@ import (
 // GetS3Data for getting s3 data for given bucket and key
 // Supported Compression is gzip
 func GetS3Data(bucket, key string, compressed bool) (io.Reader, error) {
+	InitSvc()
 	out, err := s3svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -35,6 +36,7 @@ func GetS3Data(bucket, key string, compressed bool) (io.Reader, error) {
 
 // PutKinesisRecords for putting records
 func PutKinesisRecords(records [][]byte, stream, partitionKey string) error {
+	InitSvc()
 	// request structure
 	input := &kinesis.PutRecordsInput{
 		StreamName: aws.String(stream),
