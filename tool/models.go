@@ -33,6 +33,7 @@ type Kinesis struct {
 	PartitionKey string
 }
 
+// File for storing file related details
 type File struct {
 	Path string
 }

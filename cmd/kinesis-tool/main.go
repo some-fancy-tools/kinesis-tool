@@ -16,10 +16,6 @@ var (
 	filepath     string
 )
 
-const (
-	batchLimit = 1 * 1024 * 1024
-)
-
 func init() {
 	// Generic Flags
 	flag.BoolVar(&debug, "debug", false, "Enable debug logs")
@@ -54,6 +50,7 @@ func main() {
 	f := tool.File{
 		Path: filepath,
 	}
+
 	t := tool.Tool{
 		Compressed: compressed,
 		Debug:      debug,
